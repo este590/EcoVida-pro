@@ -1,0 +1,46 @@
+name: Crear APK EcoVida
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extraer proyecto EcoVida
+        run: |
+          mkdir proyecto
+          unzip EcoVida_Actualizada_Pro_v1.1.zip -d proyecto
+          find proyecto -name settings.gradle -print
+
+      - name: Compilar APK
+        run: |
+          PROJECT_DIR=$(dirname "$(find proyecto -name settings.gradle | head -n 1)")
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoVida-APK
+          path: proyecto/**/build/outputs/apk/debug/*.apk
